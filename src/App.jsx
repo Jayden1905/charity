@@ -1,23 +1,19 @@
 import { Outlet } from "react-router-dom";
-import Nav from "./components/menu/nav";
-import { Container } from "./components/containers/container";
 import { auth } from "./config/firebase-config";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { ErrorPage } from "./pages/error";
+import { Loading } from "./pages/loading";
 
 function App() {
   const [, loading, error] = useAuthState(auth);
 
-  if (loading) return <></>;
+  if (loading) return <Loading />;
 
   if (error) return <ErrorPage errorMessage={error.message} />;
 
   return (
     <>
-      <Nav />
-      <Container>
-        <Outlet />
-      </Container>
+      <Outlet />
     </>
   );
 }

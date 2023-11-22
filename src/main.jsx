@@ -7,6 +7,8 @@ import { AnimatePresence } from "framer-motion";
 import Home from "./pages/home";
 import About from "./pages/about";
 import NotFound from "./pages/not-found.jsx";
+import Nav from "./components/menu/nav.jsx";
+import { ReleasePet } from "./pages/release.jsx";
 
 export function AnimatedRoutes() {
   const location = useLocation();
@@ -17,6 +19,7 @@ export function AnimatedRoutes() {
           <Route path="*" element={<NotFound />} />
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
+          <Route path="/release" element={<ReleasePet />} />
         </Route>
       </Routes>
     </AnimatePresence>
@@ -26,6 +29,7 @@ export function AnimatedRoutes() {
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
+      <Nav />
       <AnimatedRoutes />
     </BrowserRouter>
   </React.StrictMode>,
