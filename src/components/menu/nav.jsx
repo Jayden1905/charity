@@ -1,9 +1,13 @@
 import { useNavigate } from "react-router-dom";
 import { Container } from "../containers/container.jsx";
 import { menuLinks } from "../../util/menu";
+import { auth, provider } from "../../config/firebase-config.js";
+import { signInWithPopup, signOut } from "firebase/auth";
+import { useAuthState } from "react-firebase-hooks/auth";
 
 export default function Nav() {
   const navigate = useNavigate();
+  const [user] = useAuthState(auth);
 
   function goHome() {
     navigate("/");
@@ -11,6 +15,14 @@ export default function Nav() {
 
   function goTo(url) {
     navigate(url);
+  }
+
+  function login() {
+    signInWithPopup(auth, provider);
+  }
+
+  function logout() {
+    signOut(auth);
   }
 
   return (
@@ -34,7 +46,21 @@ export default function Nav() {
           ))}
         </ul>
         <div>
-          <button>Become Member</button>
+          {user ? (
+            <button
+              onClick={logout}
+              className="bg-white text-black px-3 rounded"
+            >
+              Sign Out
+            </button>
+          ) : (
+            <button
+              onClick={login}
+              className="bg-white text-black px-3 rounded"
+            >
+              Become Member
+            </button>
+          )}
         </div>
       </Container>
     </div>
