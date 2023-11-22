@@ -1,10 +1,15 @@
 import { Outlet } from "react-router-dom";
+import Nav from "./components/menu/nav";
+import { Container } from "./components/containers/container";
 
 function App() {
   return (
-    <div className="w-full h-screen bg-[#151515] text-white">
-      <Outlet />
-    </div>
+    <>
+      <Nav />
+      <Container>
+        <Outlet />
+      </Container>
+    </>
   );
 }
 

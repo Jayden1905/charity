@@ -6,6 +6,7 @@ import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import Home from "./pages/home";
 import About from "./pages/about";
+import NotFound from "./pages/not-found.jsx";
 
 export function AnimatedRoutes() {
   const location = useLocation();
@@ -13,6 +14,7 @@ export function AnimatedRoutes() {
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<App />}>
+          <Route path="*" element={<NotFound />} />
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
         </Route>
