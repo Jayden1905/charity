@@ -2,22 +2,34 @@ import { useState } from "react";
 import { storage, db, auth } from "../config/firebase-config";
 import { v4 } from "uuid";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  query,
+  serverTimestamp,
+  where,
+} from "firebase/firestore";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { useRef } from "react";
 import { Loading } from "./loading";
-import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { pageTransition } from "../util/animation";
+import { useQuery } from "react-query";
+import { AdoptCard } from "../components/cards/adoptCard";
+import { Container } from "../components/containers/container";
 
 export function ReleasePet() {
-  const [petName, setPetName] = useState("");
-  const [petAge, setPetAge] = useState(0);
   const [petImageUpload, setPetImageUpload] = useState(null);
   const [toggleToast, setToggleToast] = useState(false);
+
   const petNameRef = useRef(null);
   const petAgeRef = useRef(null);
   const petImageUploadRef = useRef(null);
-
-  const navigate = useNavigate();
+  const typeOfPetRef = useRef(null);
+  const petGenderRef = useRef(null);
 
   const [user, loading] = useAuthState(auth);
 
@@ -28,34 +40,70 @@ export function ReleasePet() {
 
     if (petImageUpload == null) return;
 
-    const imageRef = ref(storage, `images/${petImageUpload.name + v4()}`);
+    const imageRef = ref(storage, `images/${v4() + petImageUpload.name}`);
     uploadBytes(imageRef, petImageUpload).then((snapshot) => {
       getDownloadURL(snapshot.ref).then((url) => {
         addDoc(petCollectionRef, {
+          id: v4(),
           userId: user.uid,
-          petName: petName,
-          petAge: Number(petAge),
+          petName: petNameRef.current.value,
+          petAge: Number(petAgeRef.current.value),
+          petType: typeOfPetRef.current.value,
+          petGender: petGenderRef.current.value,
           petImageUrl: url,
           createdAt: serverTimestamp(),
+          adopted: false,
         }).then(() => {
-          petNameRef.current.value = "";
-          petAgeRef.current.value = 0;
+          petNameRef.current.value = null;
+          petAgeRef.current.value = null;
+          typeOfPetRef.current.value = null;
+          petGenderRef.current.value = null;
           petImageUploadRef.current.value = null;
           setToggleToast(true);
           setTimeout(() => {
             setToggleToast(false);
-          }, 1000);
+          }, 2000);
+          refetchPets();
         });
       });
     });
   };
 
+  async function getUserReleasePets() {
+    const q = query(petCollectionRef, where("userId", "==", user.uid));
+    const data = await getDocs(q);
+
+    const sortedData = data.docs.sort((a, b) => {
+      return b.data().createdAt.seconds - a.data().createdAt.seconds;
+    });
+
+    return sortedData.map((doc) => ({ ...doc.data(), id: doc.id }));
+  }
+
+  const {
+    data: pets,
+    isSuccess,
+    refetch: refetchPets,
+  } = useQuery({
+    queryKey: ["pets"],
+    queryFn: getUserReleasePets,
+  });
+
+  async function handleDelete(petId) {
+    const petDoc = doc(db, "pets", petId);
+    await deleteDoc(petDoc).then(() => refetchPets());
+  }
+
   if (loading) return <Loading />;
 
-  if (!user) navigate("/");
-
   return (
-    <div className="w-full px-4 pt-20 grid place-items-center">
+    <motion.div
+      variants={pageTransition}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      className="w-full px-4 pt-20 grid place-items-center"
+    >
       {toggleToast && (
         <div className="toast toast-top toast-center z-50">
           <div className="alert alert-success">
@@ -78,9 +126,6 @@ export function ReleasePet() {
               type="text"
               placeholder="Pet Name"
               className="input input-bordered w-full max-w-xl bg-base-200"
-              onChange={(e) => {
-                setPetName(e.target.value);
-              }}
             />
           </div>
           <div className="w-full sm:w-4/5 mx-auto">
@@ -90,10 +135,29 @@ export function ReleasePet() {
             <input
               ref={petAgeRef}
               type="number"
-              onChange={(e) => {
-                setPetAge(e.target.value);
-              }}
               placeholder="Pet Age"
+              className="input input-bordered w-full max-w-xl bg-base-200"
+            />
+          </div>
+          <div className="w-full sm:w-4/5 mx-auto">
+            <label className="label">
+              <span className="label-text">What is your type of pet?</span>
+            </label>
+            <input
+              ref={typeOfPetRef}
+              type="text"
+              placeholder="Pet Type"
+              className="input input-bordered w-full max-w-xl bg-base-200"
+            />
+          </div>
+          <div className="w-full sm:w-4/5 mx-auto">
+            <label className="label">
+              <span className="label-text">What is your pet gender?</span>
+            </label>
+            <input
+              ref={petGenderRef}
+              type="text"
+              placeholder="Pet Gender"
               className="input input-bordered w-full max-w-xl bg-base-200"
             />
           </div>
@@ -115,6 +179,22 @@ export function ReleasePet() {
           </div>
         </form>
       </div>
-    </div>
+      <Container>
+        <h1 className="mt-4 text-3xl font-bold">Your Release Pets</h1>
+        <div className="flex gap-4 flex-wrap justify-center lg:justify-start items-center my-6">
+          {isSuccess &&
+            pets.map((pet, index) => (
+              <AdoptCard
+                pet={pet}
+                hasStatus={true}
+                key={index}
+                hasBtn
+                btnLabel={"Delete"}
+                clickFn={() => handleDelete(pet.id)}
+              />
+            ))}
+        </div>
+      </Container>
+    </motion.div>
   );
 }

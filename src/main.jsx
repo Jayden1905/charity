@@ -9,6 +9,9 @@ import About from "./pages/about";
 import NotFound from "./pages/not-found.jsx";
 import Nav from "./components/menu/nav.jsx";
 import { ReleasePet } from "./pages/release.jsx";
+import { AdpotPage } from "./pages/adopt.jsx";
+import { QueryClient, QueryClientProvider } from "react-query";
+import { ProtectedRoute } from "./components/route/protectedRoute.jsx";
 
 export function AnimatedRoutes() {
   const location = useLocation();
@@ -19,18 +22,30 @@ export function AnimatedRoutes() {
           <Route path="*" element={<NotFound />} />
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
-          <Route path="/release" element={<ReleasePet />} />
+          <Route path="/adopt" element={<AdpotPage />} />
+          <Route
+            path="/release"
+            element={
+              <ProtectedRoute>
+                <ReleasePet />
+              </ProtectedRoute>
+            }
+          />
         </Route>
       </Routes>
     </AnimatePresence>
   );
 }
 
+const queryClient = new QueryClient();
+
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <Nav />
-      <AnimatedRoutes />
-    </BrowserRouter>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <Nav />
+        <AnimatedRoutes />
+      </BrowserRouter>
+    </QueryClientProvider>
   </React.StrictMode>,
 );

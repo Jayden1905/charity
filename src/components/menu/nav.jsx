@@ -10,6 +10,7 @@ import { navAnimation } from "../../util/animation.js";
 
 export default function Nav() {
   const navigate = useNavigate();
+
   const [user, loading] = useAuthState(auth);
 
   function goHome() {
