@@ -93,22 +93,22 @@ export function AdpotPage() {
   });
 
   function showModal(id) {
-    const adoptPet = pets.find((pet) => pet.id === id);
-    if (user.uid === adoptPet.userId) {
-      setError({ status: true, message: "You can't adopt your own pet." });
-
-      setTimeout(() => {
-        setError({ status: false, message: "" });
-      }, 2000);
-      return;
-    }
-
     if (!user) {
       setError({ status: true, message: "You need to be a member." });
       setTimeout(() => {
         setError({ status: false, message: "" });
       }, 2000);
     } else {
+      const adoptPet = pets.find((pet) => pet.id === id);
+      if (user.uid === adoptPet.userId) {
+        setError({ status: true, message: "You can't adopt your own pet." });
+
+        setTimeout(() => {
+          setError({ status: false, message: "" });
+        }, 2000);
+        return;
+      }
+
       modalRef.current.showModal();
     }
   }
