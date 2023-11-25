@@ -5,6 +5,8 @@ export function AdoptCard({ pet, hasBtn, btnLabel, hasStatus, clickFn }) {
     <div className="bg-base-300 p-3 rounded shadow-md flex flex-col gap-2">
       <p>Name: {pet.petName}</p>
       <p>Age: {pet.petAge}</p>
+      <p>Type: {pet.petType}</p>
+      <p>Gender: {pet.petGender}</p>
       {hasStatus && <p>Status: {pet.adopted ? "Adpoted" : "Available"}</p>}
       <div>
         <img

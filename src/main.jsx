@@ -5,13 +5,13 @@ import "./index.css";
 import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import Home from "./pages/home";
-import About from "./pages/about";
 import NotFound from "./pages/not-found.jsx";
 import Nav from "./components/menu/nav.jsx";
 import { ReleasePet } from "./pages/release.jsx";
 import { AdpotPage } from "./pages/adopt.jsx";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { ProtectedRoute } from "./components/route/protectedRoute.jsx";
+import { Footer } from "./components/footer/footer.jsx";
 
 export function AnimatedRoutes() {
   const location = useLocation();
@@ -21,7 +21,6 @@ export function AnimatedRoutes() {
         <Route path="/" element={<App />}>
           <Route path="*" element={<NotFound />} />
           <Route path="/" element={<Home />} />
-          <Route path="/about" element={<About />} />
           <Route path="/adopt" element={<AdpotPage />} />
           <Route
             path="/release"
@@ -45,6 +44,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <BrowserRouter>
         <Nav />
         <AnimatedRoutes />
+        <Footer />
       </BrowserRouter>
     </QueryClientProvider>
   </React.StrictMode>,

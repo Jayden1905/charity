@@ -24,7 +24,7 @@ export function AdpotPage() {
   const userAddressRef = useRef("");
   const userPhoneRef = useRef("");
 
-  const [error, setError] = useState(false);
+  const [error, setError] = useState({ status: false, message: "" });
 
   const modalRef = useRef(null);
 
@@ -51,27 +51,30 @@ export function AdpotPage() {
     queryFn: getNotAdoptedPets,
   });
 
-  async function updateStatus(id, status) {
-    const petDoc = doc(db, "pets", id);
-    await updateDoc(petDoc, {
-      adopted: status,
-    });
-  }
-
   const adopt = useMutation({
     mutationFn: async (e) => {
       e.preventDefault();
 
-      const adoptPet = pets.find((pet) => pet.id === petId);
-      if (user.uid === adoptPet.userId) return;
+      if (
+        !userNameRef.current.value ||
+        !userAddressRef.current.value ||
+        !userPhoneRef.current.value
+      ) {
+        throw new Error("Please fill all the fields.");
+      }
 
-      await updateStatus(adoptPet.id, !adoptPet.adopted);
+      const adoptPet = pets.find((pet) => pet.id === petId);
+
+      const petDoc = doc(db, "pets", adoptPet.id);
+
+      await updateDoc(petDoc, {
+        adopted: true,
+      });
+
+      // await updateStatus(adoptPet.id, true);
     },
 
     onSuccess: () => {
-      const adoptPet = pets.find((pet) => pet.id === petId);
-      if (user.uid === adoptPet.userId) return;
-
       modalRef.current.close();
       refetchPets();
       setSuccess(true);
@@ -80,13 +83,30 @@ export function AdpotPage() {
       }, 2000);
       modalRef.current.close();
     },
+
+    onError: (error) => {
+      setError({ status: true, message: error.message });
+      setTimeout(() => {
+        setError({ status: false, message: "" });
+      }, 2000);
+    },
   });
 
-  function showModal() {
-    if (!user) {
-      setError(true);
+  function showModal(id) {
+    const adoptPet = pets.find((pet) => pet.id === id);
+    if (user.uid === adoptPet.userId) {
+      setError({ status: true, message: "You can't adopt your own pet." });
+
       setTimeout(() => {
-        setError(false);
+        setError({ status: false, message: "" });
+      }, 2000);
+      return;
+    }
+
+    if (!user) {
+      setError({ status: true, message: "You need to be a member." });
+      setTimeout(() => {
+        setError({ status: false, message: "" });
       }, 2000);
     } else {
       modalRef.current.showModal();
@@ -108,10 +128,10 @@ export function AdpotPage() {
           </div>
         </div>
       )}
-      {error && (
+      {error.status && (
         <div className="toast toast-top toast-center z-50">
           <div className="alert alert-error">
-            <span>You need to be a member.</span>
+            <span>{error.message}</span>
           </div>
         </div>
       )}
@@ -137,8 +157,8 @@ export function AdpotPage() {
                 <button
                   className="btn btn-accent"
                   onClick={() => {
-                    showModal();
                     setPetId(pet.id);
+                    showModal(pet.id);
                   }}
                 >
                   Adopt
